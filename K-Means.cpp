@@ -1,8 +1,10 @@
+//Author Jason Yuan , 3/5/2020
 #include <iostream>
 #include <fstream>
 #include <math.h>
 #include <vector>
 #include <cstdlib>
+#include <string>
 
 using namespace std;
 
@@ -26,21 +28,22 @@ class kMeans
        vector<int> cluster1;
        vector<int> cluster2;
 
-       kMeans();
+       kMeans(string, string);
        int distCalculator(int, int, int, int);
-       void clustering();
-
+       bool updateCentroid();
+       void reClustering();
+       void outPutGenerator(string);
 };
 
-kMeans::kMeans()
+kMeans::kMeans(string inputFileName, string outputFileName)
 {
-    fstream file;
+    ifstream fin;
 
-    file.open("input1.txt"); //open the file
+    fin.open(inputFileName.c_str()); //open the input file
 
-    while(!file.eof())
+    while(!fin.eof())
     {
-        file >> object;
+        fin >> object;
         database.push_back(object);
     }
 
@@ -61,8 +64,6 @@ kMeans::kMeans()
             xMin = database[i];
     }
 
-    cout << "xMax is :" << xMax << "xMin is :" << xMin <<endl;
-
     for(int i = 3; i < database.size(); i+= 2)
     {
         if(database[i] > yMax)
@@ -72,8 +73,6 @@ kMeans::kMeans()
             yMin = database[i];
     }
 
-    cout << "yMax is :" << yMax << "yMin is :" << yMin << endl;
-
     //seed point 1
     centroidPoint1x = xMin + rand() % (xMax - xMin + 1);
     centroidPoint1y = yMin + rand() % (yMax - yMin + 1);
@@ -82,7 +81,7 @@ kMeans::kMeans()
     centroidPoint2x = xMin + rand() % (xMax - xMin + 1);
     centroidPoint2y = yMin + rand() % (yMax - yMin + 1);
 
-    cout << "seed point 1 is (" << centroidPoint1x << " , " << centroidPoint1y << ")" << endl;
+    cout << "seed point 1 is (" << centroidPoint1x << " , " << centroidPoint1y << "), ";
     cout << "seed point 2 is (" << centroidPoint2x << " , " << centroidPoint2y << ")" << endl;
 
     //initial clustering
@@ -101,7 +100,7 @@ kMeans::kMeans()
         }
     }
 
-    //examine unit
+    /*examine unit
     cout << "data in cluster1: " << endl;
     for(int i = 0; i< cluster1.size(); i++)
     {
@@ -113,12 +112,18 @@ kMeans::kMeans()
     {
         cout << cluster2[i] << endl;
     }
+    */
 
     /*** end of centroid points initializing ***/
-    
-    clustering();
 
-    file.close();           //close the file
+    while(updateCentroid())
+    {
+        reClustering();
+    }
+
+    outPutGenerator(outputFileName);
+
+    fin.close();           //close the input file
 }
 
 int kMeans::distCalculator(int x1, int x2, int y1, int y2)
@@ -126,15 +131,130 @@ int kMeans::distCalculator(int x1, int x2, int y1, int y2)
     return sqrt(pow((x1 - x2), 2.0) + pow ((y1 - y2), 2.0));
 }
 
-void kMeans::clustering()
+bool kMeans::updateCentroid()
 {
-    cout << "clustering() function is called!";
+    int sumX = 0,
+        sumY = 0,
+        preCentroPoint1x = centroidPoint1x,
+        preCentroPoint1y = centroidPoint1y,
+        preCentroPoint2x = centroidPoint2x,
+        preCentroPoint2y = centroidPoint2y;
+
+    //update centroidPoint1x
+    for(int i = 0; i < cluster1.size(); i += 2)
+    {
+        sumX += cluster1[i];
+    }
+
+    centroidPoint1x = sumX / cluster1.size();
+
+    //update centroidPoint1y
+    for(int i = 1; i < cluster1.size(); i += 2)
+    {
+        sumY += cluster1[i];
+    }
+
+    centroidPoint1x = sumX / cluster1.size();
+
+    //update centroidPoint2x
+    for(int i = 0; i < cluster2.size(); i += 2)
+    {
+        sumX += cluster2[i];
+    }
+
+    centroidPoint1x = sumX / cluster2.size();
+
+    //update centroidPoint2y
+    for(int i = 1; i < cluster2.size(); i += 2)
+    {
+        sumY += cluster2[i];
+    }
+
+    centroidPoint1x = sumY / cluster2.size();
+
+    if(preCentroPoint1x == centroidPoint1x && preCentroPoint2x == centroidPoint2x && preCentroPoint1y == centroidPoint1y && preCentroPoint2y == centroidPoint2y)
+    {
+        cout << "updated centroid point 1 is still (" << centroidPoint1x << " , " << centroidPoint1y << ") STOP updating!" << endl;
+        cout << "updated centroid point 2 is still (" << centroidPoint2x << " , " << centroidPoint2y << ") STOP updating!" << endl;
+        cout << "******Process Finished, NEW Clusters defined for input!******" << endl;
+        return false;
+    }
+
+    else
+    {
+        cout << "updated centroid point 1 is (" << centroidPoint1x << " , " << centroidPoint1y << ") ,";
+        cout << "updated centroid point 2 is (" << centroidPoint2x << " , " << centroidPoint2y << ")" << endl;
+        return true;
+    }
+}
+
+void kMeans::reClustering()
+{
+    //reclustering cluster1
+    for(int i = 0; i < cluster1.size(); i += 2)
+    {
+        if(distCalculator(cluster1[i], centroidPoint1x, cluster1[i + 1], centroidPoint1y) > distCalculator(cluster1[i], centroidPoint2x, cluster1[i + 1], centroidPoint2y))
+        {
+            cluster2.push_back(cluster1[i]);
+            cluster2.push_back(cluster1[i + 1]);
+            cluster1.erase(cluster1.begin() + i - 1);
+            cluster1.erase(cluster1.begin() + i);
+        }
+    }
+
+    //reclustering cluster2
+    for(int i = 0; i < cluster2.size(); i += 2)
+    {
+        if(distCalculator(cluster2[i], centroidPoint1x, cluster2[i + 1], centroidPoint1y) < distCalculator(cluster2[i], centroidPoint2x, cluster2[i + 1], centroidPoint2y))
+        {
+            cluster1.push_back(cluster2[i]);
+            cluster1.push_back(cluster2[i + 1]);
+            cluster2.erase(cluster1.begin() + i - 1);
+            cluster2.erase(cluster1.begin() + i);
+        }
+    }
+}
+
+void kMeans::outPutGenerator(string fileName)
+{
+    ofstream fout;
+    fout.open(fileName.c_str());    //open the output file
+
+    /*** output for objects in cluster1 ***/
+
+    for(int i = 0; i < cluster1.size(); i += 2)
+    {
+        fout << cluster1[i];
+        fout << "    	";
+        fout << cluster1[i + 1];
+        fout << "    	";
+        fout << "1";
+        fout << endl;
+    }
+
+    /*** output for objects in cluster2 ***/
+    for(int i = 0; i < cluster2.size(); i += 2)
+    {
+        fout << cluster2[i];
+        fout << "    	";
+        fout << cluster2[i + 1];
+        fout << "    	";
+        fout << "2";
+        fout << endl;
+    }
+
+    cout <<  fileName << " is generated! " << endl;
+    cout << endl;
+
+    fout.close();                //close the output file
 }
 
 int main()
 {
-
-    kMeans input1;
+    kMeans k1("input1.txt", "output1.txt");
+    kMeans k2("input2.txt", "output2.txt");
+    kMeans k3("input3.txt", "output3.txt");
+    kMeans k4("input4.txt", "output4.txt");
 
     return 0;
 }
