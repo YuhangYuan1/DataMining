@@ -140,37 +140,27 @@ bool kMeans::updateCentroid()
         preCentroPoint2x = centroidPoint2x,
         preCentroPoint2y = centroidPoint2y;
 
-    //update centroidPoint1x
+    //update centroidPoint1x centroidPoint1y
     for(int i = 0; i < cluster1.size(); i += 2)
     {
         sumX += cluster1[i];
+        sumY += cluster1[i + 1];
     }
 
-    centroidPoint1x = sumX / cluster1.size();
+    centroidPoint1x = sumX / (cluster1.size() / 2);
+    centroidPoint1y = sumY / (cluster1.size() / 2);
 
-    //update centroidPoint1y
-    for(int i = 1; i < cluster1.size(); i += 2)
-    {
-        sumY += cluster1[i];
-    }
-
-    centroidPoint1x = sumX / cluster1.size();
-
-    //update centroidPoint2x
+    sumX = 0;
+    sumY = 0;
+    //update centroidPoint2x centroidPoint2y
     for(int i = 0; i < cluster2.size(); i += 2)
     {
         sumX += cluster2[i];
+        sumY += cluster2[i + 1];
     }
 
-    centroidPoint1x = sumX / cluster2.size();
-
-    //update centroidPoint2y
-    for(int i = 1; i < cluster2.size(); i += 2)
-    {
-        sumY += cluster2[i];
-    }
-
-    centroidPoint1x = sumY / cluster2.size();
+    centroidPoint2x = sumX / (cluster2.size() / 2);
+    centroidPoint2y = sumY / (cluster2.size() / 2);
 
     if(preCentroPoint1x == centroidPoint1x && preCentroPoint2x == centroidPoint2x && preCentroPoint1y == centroidPoint1y && preCentroPoint2y == centroidPoint2y)
     {
@@ -251,10 +241,10 @@ void kMeans::outPutGenerator(string fileName)
 
 int main()
 {
-    kMeans k1("input1.txt", "output1.txt");
+    //kMeans k1("input1.txt", "output1.txt");
     kMeans k2("input2.txt", "output2.txt");
-    kMeans k3("input3.txt", "output3.txt");
-    kMeans k4("input4.txt", "output4.txt");
+    //kMeans k3("input3.txt", "output3.txt");
+    //kMeans k4("input4.txt", "output4.txt");
 
     return 0;
 }
