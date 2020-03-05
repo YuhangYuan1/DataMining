@@ -106,7 +106,6 @@ kMeans::kMeans(string inputFileName, string outputFileName)
     {
         cout << cluster1[i] << endl;
     }
-
     cout << "data in cluster2: " << endl;
     for(int i = 0; i< cluster2.size(); i++)
     {
@@ -242,9 +241,9 @@ void kMeans::outPutGenerator(string fileName)
 int main()
 {
     //kMeans k1("input1.txt", "output1.txt");
-    kMeans k2("input2.txt", "output2.txt");
+    //kMeans k2("input2.txt", "output2.txt");
     //kMeans k3("input3.txt", "output3.txt");
-    //kMeans k4("input4.txt", "output4.txt");
+    kMeans k4("input4.txt", "output4.txt");
 
     return 0;
 }
